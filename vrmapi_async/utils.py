@@ -12,11 +12,8 @@ def datetime_to_epoch(dt: datetime) -> int:
     Ensures the datetime is timezone-aware (UTC) before conversion if naive.
     Rounds up to the nearest second to match the original implementation's behavior.
 
-    Args:
-        dt: The datetime object to convert.
-
-    Returns:
-        The epoch timestamp as an integer.
+    :params dt: The datetime object to convert.
+    :returns: The epoch timestamp as an integer.
     """
     if dt.tzinfo is None:
         # If naive, assume it's in the system's local timezone and convert to UTC

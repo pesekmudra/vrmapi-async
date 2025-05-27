@@ -56,8 +56,6 @@ mkShell {
 
       # -- (YOUR) EXTRA PKGS --
       uv # Extremely fast Python package installer and resolver, written in Rust
-      # python312
-      # (python312.withPackages (p: with p; [ uv pip setuptools ]))
     ];
 
   shellHook = ''

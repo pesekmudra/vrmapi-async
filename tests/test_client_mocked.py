@@ -4,13 +4,14 @@ import respx
 from httpx import Response
 
 from vrmapi_async.client import VRMAsyncAPI, DEMO_USER_ID, DEMO_SITE_ID
-from vrmapi_async.routes import VRMPaths
-from vrmapi_async.models import Site, SiteExtended, ConsumptionStatsResponse
+from vrmapi_async.routes import VRMRoutes
+from vrmapi_async.client.users.schema import Site, SiteExtended
+from vrmapi_async.client.installations.schema import ConsumptionStatsResponse
 
 pytestmark = pytest.mark.asyncio
 
 BASE_URL = "https://vrmapi.victronenergy.com/v2"
-paths = VRMPaths()
+paths = VRMRoutes()
 
 
 DEMO_LOGIN_RESPONSE = {"token": "fake_demo_token", "idUser": DEMO_USER_ID}
@@ -94,7 +95,7 @@ async def test_get_user_sites_mocked():
 
     client = VRMAsyncAPI(demo=True, base_url=BASE_URL)
     async with client:
-        sites = await client.get_user_sites()
+        sites = await client.users.get_installations(client.user_id)
 
     assert len(sites) == 1
     assert isinstance(sites[0], Site)
@@ -119,7 +120,7 @@ async def test_get_user_sites_extended_mocked():
 
     client = VRMAsyncAPI(demo=True, base_url=BASE_URL)
     async with client:
-        sites = await client.get_user_sites_extended()
+        sites = await client.users.get_installations_extended(client.user_id)
 
     assert len(sites) == 1
     assert isinstance(sites[0], SiteExtended)
@@ -134,14 +135,14 @@ async def test_get_consumption_stats_mocked():
     respx.get(f"{BASE_URL}{paths.AUTH_DEMO}").mock(
         return_value=Response(200, json=DEMO_LOGIN_RESPONSE)
     )
-    stats_url = f"{BASE_URL}{paths.INSTALLATIONS_STATS.format(inst_id=DEMO_SITE_ID)}"
+    stats_url = f"{BASE_URL}{paths.INSTALLATIONS_STATS.format(site_id=DEMO_SITE_ID)}"
     respx.get(stats_url, params={"type": "consumption"}).mock(
         return_value=Response(200, json=CONSUMPTION_RESPONSE)
     )
 
     client = VRMAsyncAPI(demo=True, base_url=BASE_URL)
     async with client:
-        stats = await client.get_consumption_stats(DEMO_SITE_ID)
+        stats = await client.installations.get_consumption_stats(DEMO_SITE_ID)
 
     assert isinstance(stats, ConsumptionStatsResponse)
     assert stats.success is True

@@ -2,7 +2,8 @@
 import pytest
 from vrmapi_async.client import VRMAsyncAPI, DEMO_SITE_ID
 from vrmapi_async.exceptions import VRMAPIError
-from vrmapi_async.models import Site, SiteExtended, ConsumptionStatsResponse
+from vrmapi_async.client.users.schema import Site, SiteExtended
+from vrmapi_async.client.installations.schema import ConsumptionStatsResponse
 
 pytestmark = pytest.mark.asyncio
 
@@ -24,7 +25,7 @@ async def test_get_user_sites_online():
     """Tests fetching non-extended sites from the *real* demo API."""
     client = VRMAsyncAPI(demo=True)
     async with client:
-        sites = await client.get_user_sites()
+        sites = await client.users.get_installations(client.user_id)
 
     assert isinstance(sites, list)
     assert len(sites) > 0
@@ -38,7 +39,7 @@ async def test_get_user_sites_extended_online():
     """Tests fetching extended sites from the *real* demo API."""
     client = VRMAsyncAPI(demo=True)
     async with client:
-        sites = await client.get_user_sites_extended()
+        sites = await client.users.get_installations_extended(client.user_id)
 
     assert isinstance(sites, list)
     assert len(sites) > 0  # Demo user should have sites
@@ -53,7 +54,7 @@ async def test_get_consumption_stats_online():
     client = VRMAsyncAPI(demo=True)
     async with client:
         # We need a site ID known to be in the demo account. Let's use 2286
-        stats = await client.get_consumption_stats(DEMO_SITE_ID)
+        stats = await client.installations.get_consumption_stats(DEMO_SITE_ID)
 
     assert isinstance(stats, ConsumptionStatsResponse)
     assert stats.success is True
