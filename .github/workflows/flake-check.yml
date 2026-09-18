@@ -23,7 +23,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checking out repository..."
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # TODO: this messes up the direnv action for some reason
       # - name: "Cleaning up the GitHub runner from default bloat..."
