@@ -36,7 +36,7 @@ jobs:
             accept-flake-config = true
 
       - name: "Settings up cachix binary cache..."
-        uses: cachix/cachix-action@v16
+        uses: cachix/cachix-action@v17
         with:
           name: tsandrini
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
