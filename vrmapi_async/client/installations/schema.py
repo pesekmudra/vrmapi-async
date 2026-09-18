@@ -1,7 +1,7 @@
 from pydantic import Field, ConfigDict, model_validator
 from typing import List, Optional, Dict, Any
 
-from vrmapi_async.client.base.schema import BaseModel
+from vrmapi_async.client.base.schema import BaseModel, BaseResponseModel
 
 
 class StatsRecord(BaseModel):
@@ -35,11 +35,10 @@ class StatsRecord(BaseModel):
 class ConsumptionData(BaseModel):
     """Model for the 'records' part of consumption/kwh stats."""
 
-    # Use Union to allow List of records OR a boolean False
     pc: Optional[List[StatsRecord] | bool] = Field(None, alias="Pc")
     bc: Optional[List[StatsRecord] | bool] = Field(None, alias="Bc")
-    gc: Any = Field(..., alias="Gc")  # Keep as Any or bool if always False
-    gc_lower: Any = Field(..., alias="gc")  # Keep as Any or bool if always False
+    gc: Any = Field(..., alias="Gc")  
+    gc_lower: Any = Field(..., alias="gc")  
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
@@ -60,7 +59,7 @@ class ConsumptionData(BaseModel):
         return data
 
 
-class ConsumptionStatsResponse(BaseModel):
+class ConsumptionStatsResponse(BaseResponseModel):
     """Response model for consumption/kwh stats."""
 
     success: bool

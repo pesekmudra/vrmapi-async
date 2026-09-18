@@ -10,6 +10,7 @@ from .schema import (
     SiteExtended,
     AccessToken,
     UsersListAccessTokensResponse,
+    CreateAccessTokenResponse,
 )
 
 
@@ -67,4 +68,5 @@ class UsersNamespace(BaseNamespace):
             )
 
         response_data = await self._request("POST", url, params=params)
-        return response_data
+        return response_data  # type: ignore
+        # return CreateAccessTokenResponse(**response_data)

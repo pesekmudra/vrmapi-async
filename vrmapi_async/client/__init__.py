@@ -64,6 +64,12 @@ class VRMAsyncAPI:
                 "Multiple authentication methods provided. Please provide only one: (username/password), demo=True, or (token/user_id_for_token)."
             )
 
+        if (token and not user_id_for_token) or (not token and user_id_for_token):
+            raise ValueError("To properly use token authentication, both 'token' and 'user_id_for_token' must be provided.")
+
+        if (username and not password) or (not username and password):
+            raise ValueError("To properly use credentials authentication, both 'username' and 'password' must be provided.")
+
         self.username = username
         self.password = password
         self.is_demo = demo
@@ -73,10 +79,13 @@ class VRMAsyncAPI:
         self.user_id: Optional[int] = None
         self._auth_token: Optional[str] = None
 
-        self.global_headers = headers or {}
+        self.global_headers = {"Content-Type": "application/json"}
         self.routes = routes_cls()
 
         self._client: httpx.AsyncClient = httpx.AsyncClient(base_url=base_url)
+
+        if headers:
+            self.global_headers.update(headers)
 
         if self._pre_auth_token:
             self._auth_mode = "token"
@@ -90,7 +99,7 @@ class VRMAsyncAPI:
 
     async def _login(self) -> None:
         """Logs in using username and password."""
-        logger.debug(f"Attempting to log in with username {self.username}")
+        logger.info(f"Attempting to log in with username {self.username}")
         try:
             response = await self._client.post(
                 self.routes.AUTH_LOGIN,
@@ -119,17 +128,20 @@ class VRMAsyncAPI:
             ) from e
 
     async def _logout(self) -> None:
-        logger.debug("Attempting to log out user %s", self.username)
+        logger.info(f"Attempting to log out user {self.username}")
         if not self._auth_token:
             raise VRMAuthenticationError("No active session to log out from. Exiting.")
+
+        if self._auth_mode == "token":
+            raise VRMAuthenticationError("Cannot log out when using token authentication. To invalidate the token, you must call the revoke endpoint instead.")
 
         try:
             response = await self._client.post(
                 self.routes.AUTH_LOGOUT,
-                headers={"X-Authorization": f"Bearer {self._auth_token}"},
+                headers={"X-Authorization": "Bearer " + self._auth_token},
             )
             response.raise_for_status()
-            logger.info("Successfully logged out user %s", self.username)
+            logger.info(f"Successfully logged out user {self.username}")
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
                 raise VRMAuthenticationError(
@@ -209,13 +221,17 @@ class VRMAsyncAPI:
         url: str,
         params: Optional[Dict] = None,
         json_data: Optional[Dict] = None,
+        headers: Optional[Dict[str, str]] = None, 
     ) -> Dict[str, Any]:
         """Internal wrapper to make authenticated API requests."""
         if not self._auth_token:
             raise VRMAuthenticationError("Not logged in. Call connect() first.")
 
         request_headers = self.global_headers.copy()
-        request_headers["X-Authorization"] = f"Bearer {self._auth_token}"
+        request_headers["X-Authorization"] = ("Token " if self._auth_mode == "token" else "Bearer ") + self._auth_token
+
+        if headers:
+            request_headers.update(headers)
 
         logger.debug(
             f"Sending {method} request to {url} with params {params} and headers {request_headers}"

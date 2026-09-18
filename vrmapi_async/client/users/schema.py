@@ -4,7 +4,7 @@
 from pydantic import Field, ConfigDict, field_validator, Json
 from typing import List, Optional, Any
 
-from vrmapi_async.client.base.schema import BaseModel
+from vrmapi_async.client.base.schema import BaseModel, BaseResponseModel
 
 
 class Site(BaseModel):
@@ -50,7 +50,6 @@ class Site(BaseModel):
         ..., alias="inverterChargerControl"
     )
 
-    # Allow extra fields for the extended model
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     @field_validator("phonenumber", mode="before")
@@ -86,14 +85,14 @@ class SiteExtended(Site):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
 
-class UserSitesResponse(BaseModel):
+class UserSitesResponse(BaseResponseModel):
     """Response model for fetching non-extended user sites."""
 
     success: bool
     records: List[Site]
 
 
-class UserSitesExtendedResponse(BaseModel):
+class UserSitesExtendedResponse(BaseResponseModel):
     """Response model for fetching extended user sites."""
 
     success: bool
@@ -111,10 +110,15 @@ class AccessToken(BaseModel):
     last_seen: Optional[int] = Field(None, alias="lastSeen")
     last_successful_auth: Optional[int] = Field(None, alias="lastSuccessfulAuth")
 
-    # model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+class CreateAccessTokenResponse(BaseResponseModel):
+    """Response model for creating an access token."""
+    success: bool
+    token: AccessToken
+    id_access_token: str
 
 
-class UsersListAccessTokensResponse(BaseModel):
+class UsersListAccessTokensResponse(BaseResponseModel):
     """Response model for listing user access tokens."""
 
     success: bool
